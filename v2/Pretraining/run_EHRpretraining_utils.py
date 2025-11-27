@@ -1,12 +1,12 @@
-# This code is adapted from work by lrasmy (Zhilab), originally dated 2019-08-10.
-
 import tensorflow as tf
 from tensorflow.keras.layers import Dense, LayerNormalization, Layer, Softmax, Reshape
 from tensorflow.keras import backend as K
 
 epsilon = 0.1  # label smoothing용
 
+# ===================== Custom Layers =====================
 class GatherIndexes(Layer):
+    """주어진 인덱스에 해당하는 텐서 조각을 추출"""
     def __init__(self, **kwargs):
         super(GatherIndexes, self).__init__(**kwargs)
 
@@ -21,7 +21,7 @@ class GatherIndexes(Layer):
         return (input_tensor_shape[0], positions_shape[1], input_tensor_shape[2])
 
 class MaskedLMPredictionHead(Layer):
-    # masked LM을 위한 출력 헤드, 가중치 공유(weight tying)를 처리
+    """Masked LM을 위한 출력 헤드. 가중치 공유(weight tying)를 처리"""
     def __init__(self, config, embedding_weights, **kwargs):
         super(MaskedLMPredictionHead, self).__init__(**kwargs)
         self.config = config
@@ -36,6 +36,7 @@ class MaskedLMPredictionHead(Layer):
         x = tf.nn.bias_add(x, self.bias)
         return x
 
+# ===================== Masked LM (Corrected) =====================
 def get_masked_lm_output(config, input_tensor, output_weights, positions,
                          label_ids, label_weights):
     gathered_tensor = GatherIndexes()([input_tensor, positions])
@@ -54,17 +55,10 @@ def get_masked_lm_output(config, input_tensor, output_weights, positions,
     label_ids = Reshape((-1,))(label_ids)
     label_weights = Reshape((-1,))(label_weights)
     
-    # label smoothing 적용 전 
-    ''' 
     one_hot_labels = tf.keras.layers.Lambda(
         lambda x: tf.one_hot(x, depth=config.vocab_size, dtype=tf.float32),
         output_shape=(None, config.vocab_size)
     )(label_ids)
-    '''
-    # label smoothing 적용 후 
-    one_hot_labels = tf.keras.layers.Lambda(
-        lambda x: (1 - epsilon) * x + (epsilon / tf.cast(tf.shape(x)[-1], tf.float32))
-    )(one_hot_labels)
 
     per_example_loss = tf.keras.layers.Lambda(
         lambda x: -tf.reduce_sum(x[0] * x[1], axis=-1)
@@ -85,6 +79,7 @@ def get_masked_lm_output(config, input_tensor, output_weights, positions,
     loss = numerator / denominator
     return (loss, per_example_loss, log_probs)
 
+# ===================== Next Sentence Prediction (Corrected) =====================
 def get_next_sentence_output(config, input_tensor, labels):
     logits = Dense(units=2, kernel_initializer=tf.keras.initializers.TruncatedNormal(stddev=config.initializer_range), name="cls_seq_relationship_output")(input_tensor)
     
@@ -101,6 +96,7 @@ def get_next_sentence_output(config, input_tensor, labels):
         lambda x: -tf.reduce_sum(x[0] * x[1], axis=-1)
     )([one_hot_labels, log_probs])
     
+    # ✅ 수정된 부분: tf.reduce_mean을 Lambda 레이어로 변경
     loss = tf.keras.layers.Lambda(
         lambda x: tf.reduce_mean(x)
     )(per_example_loss)
