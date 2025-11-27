@@ -1,4 +1,4 @@
-# Source-free domain adaptation을 활용한 전자 의료 기록(EHR) 기반 질병 예측 모델의 병원 간 데이터 공유 한계 극복 및 성능 개선
+# Med-TENT: Source-Free Domain Adaptation을 활용한 전자 의료 기록(EHR) 텍스트 기반 질병 예측 모델의 병원 간 데이터 공유 한계 극복 및 성능 개선
 본 연구는 **전자 의료 기록(EHR)**을 활용하여 다른 병원으로부터 공유받은 질병 예측 모델을 **원본 학습 데이터 없이(source-free)** 보유하고 있는 데이터만으로 모델의 예측 성능을 유지할 수 있도록 **도메인 적응(Domain Adaptation)** 기법 중 **TENT(Test-time Entropy Minimization)** 알고리즘을 적용하여 그 효과를 비교·분석하는 연구임.
 
 
