@@ -106,4 +106,4 @@ project/
 <br>
 
 ## 포스터
-(github.com/2025start-GreenDevil/Med-TENT/medtent_poster)
+[medtent_poster](medtent_poster.png)
