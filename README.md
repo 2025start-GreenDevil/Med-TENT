@@ -106,4 +106,4 @@ project/
 <br>
 
 ## 포스터
-[medtent_poster](medtent_poster.png)
+![medtent_poster](medtent_poster.png)
